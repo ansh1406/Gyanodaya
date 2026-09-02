@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../utils/validators.dart';
-import '../../services/mock_otp_service.dart';
 import '../../app/routes.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -29,7 +28,6 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() {
       _loading = true;
     });
-    final code = await MockOtpService.instance.requestOtp(phone);
     if (!mounted) return;
     setState(() {
       _loading = false;

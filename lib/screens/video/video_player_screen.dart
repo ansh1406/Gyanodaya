@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:video_player/video_player.dart';
-import '../../models/video.dart';
 import '../../services/video_service.dart';
 
 class VideoPlayerScreen extends StatefulWidget {
@@ -243,13 +242,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildLoadingWidget() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          CircularProgressIndicator(color: Colors.indigoAccent),
-          SizedBox(height: 16),
-          Text(
+          CircularProgressIndicator(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          const Text(
             'Loading video...',
             style: TextStyle(color: Colors.white70, fontSize: 14),
           ),
@@ -275,7 +276,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             const SizedBox(height: 20),
             ElevatedButton.icon(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.indigo,
+                backgroundColor: Theme.of(context).colorScheme.primary,
                 foregroundColor: Colors.white,
               ),
               onPressed: () {
@@ -295,20 +296,44 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildPlayerContent() {
+    final videoSize = _controller?.value.size ?? Size.zero;
+    final hasValidSize = _controller != null &&
+        _controller!.value.isInitialized &&
+        videoSize.width > 0 &&
+        videoSize.height > 0;
+    final double aspectRatio = hasValidSize
+        ? _controller!.value.aspectRatio
+        : (16 / 9);
+
     return Container(
-      color: Colors.black,
+      color: Theme.of(context).colorScheme.onPrimary,
       width: double.infinity,
       height: double.infinity,
       alignment: Alignment.center,
       child: AspectRatio(
-        aspectRatio: _controller!.value.aspectRatio > 0
-            ? _controller!.value.aspectRatio
-            : 16 / 9,
+        aspectRatio: aspectRatio,
         child: Stack(
           alignment: Alignment.center,
           children: [
-            // Video Layer
-            VideoPlayer(_controller!),
+            // Video Layer: Scaled perfectly to player size and clipped to eliminate edge green line artifacts
+            Positioned.fill(
+              child: ClipRect(
+                child: Transform.scale(
+                  scale: 1.015,
+                  child: Center(
+                    child: FittedBox(
+                      fit: BoxFit.cover,
+                      alignment: Alignment.center,
+                      child: SizedBox(
+                        width: hasValidSize ? videoSize.width : 16,
+                        height: hasValidSize ? videoSize.height : 9,
+                        child: VideoPlayer(_controller!),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
 
             // Double Tap Gesture Detection Layer
             Positioned.fill(
@@ -463,6 +488,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
             color: const Color(0xFF1E1E1E),
             onSelected: _changePlaybackSpeed,
             itemBuilder: (context) {
+              final primaryColor = Theme.of(context).colorScheme.primary;
               return _availableSpeeds.map((speed) {
                 final isSelected = speed == _playbackSpeed;
                 return PopupMenuItem<double>(
@@ -473,15 +499,15 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
                       Text(
                         '${speed}x',
                         style: TextStyle(
-                          color: isSelected ? Colors.indigoAccent : Colors.white,
+                          color: isSelected ? primaryColor : Colors.white,
                           fontWeight:
                               isSelected ? FontWeight.bold : FontWeight.normal,
                         ),
                       ),
                       if (isSelected)
-                        const Icon(
+                        Icon(
                           Icons.check,
-                          color: Colors.indigoAccent,
+                          color: primaryColor,
                           size: 18,
                         ),
                     ],
@@ -496,6 +522,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildCenterControls() {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final isPlaying = _controller?.value.isPlaying ?? false;
     final isEnded = _isEnded;
 
@@ -514,7 +541,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
 
         // Central Play / Pause / Replay Button
         Material(
-          color: Colors.indigoAccent.withAlpha(220),
+          color: primaryColor.withAlpha(220),
           shape: const CircleBorder(),
           elevation: 4,
           child: InkWell(
@@ -549,6 +576,7 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
   }
 
   Widget _buildBottomControls() {
+    final primaryColor = Theme.of(context).colorScheme.primary;
     final position = _controller?.value.position ?? Duration.zero;
     final duration = _controller?.value.duration ?? Duration.zero;
 
@@ -568,10 +596,10 @@ class _VideoPlayerScreenState extends State<VideoPlayerScreen> {
               trackHeight: 3.5,
               thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6.5),
               overlayShape: const RoundSliderOverlayShape(overlayRadius: 14.0),
-              activeTrackColor: Colors.indigoAccent,
+              activeTrackColor: primaryColor,
               inactiveTrackColor: Colors.white24,
               thumbColor: Colors.white,
-              overlayColor: Colors.indigoAccent.withAlpha(80),
+              overlayColor: primaryColor.withAlpha(80),
             ),
             child: Slider(
               value: totalMs > 0 ? currentMs.clamp(0.0, totalMs) : 0.0,

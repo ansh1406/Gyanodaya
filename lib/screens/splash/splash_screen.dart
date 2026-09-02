@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../app/routes.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -20,8 +21,10 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(child: CircularProgressIndicator()),
+    return Scaffold(
+      body: Center(
+        child: Image.asset('assets/icons/icon.png', width: 160, height: 160),
+      ),
     );
   }
 }
